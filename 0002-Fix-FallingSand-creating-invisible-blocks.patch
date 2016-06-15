@@ -1,0 +1,81 @@
+From 34120b3a7147e1a00cb0a96cbe56e19946e39d7e Mon Sep 17 00:00:00 2001
+From: Jedediah Smith <jedediah@silencegreys.com>
+Date: Tue, 14 Jun 2016 20:48:46 -0700
+Subject: [PATCH 2/8] Fix FallingSand creating invisible blocks
+
+Workaround for https://bugs.mojang.com/browse/MC-72248
+If an EntityFallingBlock spawns inside a block of the same type, the
+client will ALWAYS remove the block, whereas the server will only
+remove it if ticksLived is 0. This creates invisible blocks on the
+client. The imperfect workaround is to not spawn the falling block at
+all if it will cause such a desync.
+
+Signed-off-by: Jadon Fowler <jadonflower@gmail.com>
+---
+ patches/net/minecraft/world/World.java.patch | 37 +++++++++++++++++++++++++---
+ 1 file changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/patches/net/minecraft/world/World.java.patch b/patches/net/minecraft/world/World.java.patch
+index 69a3e22..2bf32ff 100644
+--- a/patches/net/minecraft/world/World.java.patch
++++ b/patches/net/minecraft/world/World.java.patch
+@@ -1,6 +1,18 @@
+ --- minecraft/src/net/minecraft/world/World.java
+ +++ src/main/java/net/minecraft/world/World.java
+-@@ -68,10 +68,13 @@
++@@ -19,10 +19,11 @@
++ import net.minecraft.crash.CrashReport;
++ import net.minecraft.crash.CrashReportCategory;
++ import net.minecraft.crash.ICrashReportDetail;
++ import net.minecraft.entity.Entity;
++ import net.minecraft.entity.EntityLiving;
+++import net.minecraft.entity.item.EntityFallingBlock;
++ import net.minecraft.entity.player.EntityPlayer;
++ import net.minecraft.entity.player.EntityPlayerMP;
++ import net.minecraft.init.Biomes;
++ import net.minecraft.init.Blocks;
++ import net.minecraft.item.ItemStack;
++@@ -68,10 +69,13 @@
+  import net.minecraft.world.storage.ISaveHandler;
+  import net.minecraft.world.storage.MapStorage;
+  import net.minecraft.world.storage.WorldInfo;
+@@ -14,7 +26,7 @@
+     protected boolean scheduledUpdatesAreImmediate;
+     public final List<Entity> loadedEntityList = Lists.newArrayList();
+     protected final List<Entity> unloadedEntityList = Lists.newArrayList();
+-@@ -109,11 +112,18 @@
++@@ -109,11 +113,18 @@
+     protected boolean spawnHostileMobs;
+     protected boolean spawnPeacefulMobs;
+     private boolean processingLoadedTiles;
+@@ -33,7 +45,26 @@
+        this.theCalendar = Calendar.getInstance();
+        this.worldScoreboard = new Scoreboard();
+        this.spawnHostileMobs = true;
+-@@ -1982,27 +1992,27 @@
++@@ -748,10 +759,18 @@
++       this.weatherEffects.add(var1);
++       return true;
++    }
++ 
++    public boolean spawnEntityInWorld(Entity var1) {
+++      // SportBukkit Start
+++      if(var1 instanceof EntityFallingBlock && ((EntityFallingBlock) var1).getBlock().getBlock() == this.getBlockState(new BlockPos(var1)).getBlock()) {
+++          EntityFallingBlock fallingBlock = (EntityFallingBlock) var1;
+++          if(fallingBlock.ticksExisted != 0 && fallingBlock.getBlock().getBlock() == this.getBlockState(new BlockPos(fallingBlock)).getBlock()) {
+++              return false;
+++          }
+++      }
+++      // SportBukkit End
++       int var2 = MathHelper.floor_double(var1.posX / 16.0D);
++       int var3 = MathHelper.floor_double(var1.posZ / 16.0D);
++       boolean var4 = var1.forceSpawn;
++       if(var1 instanceof EntityPlayer) {
++          var4 = true;
++@@ -1982,27 +2001,27 @@
+  
+        return var4;
+     }
+-- 
+2.7.4
+

@@ -1,0 +1,35 @@
+From 85e1778674d8b8e94ae0362f67c106ae7bba1d8f Mon Sep 17 00:00:00 2001
+From: Jedediah Smith <jedediah@silencegreys.com>
+Date: Tue, 14 Jun 2016 21:15:21 -0700
+Subject: [PATCH 4/8] Fix cooked fish legacy import
+
+Signed-off-by: Jadon Fowler <jadonflower@gmail.com>
+---
+ .../util/datafix/fixes/ItemIntIDToString.java.patch       | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+ create mode 100644 patches/net/minecraft/util/datafix/fixes/ItemIntIDToString.java.patch
+
+diff --git a/patches/net/minecraft/util/datafix/fixes/ItemIntIDToString.java.patch b/patches/net/minecraft/util/datafix/fixes/ItemIntIDToString.java.patch
+new file mode 100644
+index 0000000..a4a8365
+--- /dev/null
++++ b/patches/net/minecraft/util/datafix/fixes/ItemIntIDToString.java.patch
+@@ -0,0 +1,15 @@
++--- minecraft/src/net/minecraft/util/datafix/fixes/ItemIntIDToString.java
+++++ src/main/java/net/minecraft/util/datafix/fixes/ItemIntIDToString.java
++@@ -261,11 +261,11 @@
++       ID_MAP[345] = "minecraft:compass";
++       ID_MAP[346] = "minecraft:fishing_rod";
++       ID_MAP[347] = "minecraft:clock";
++       ID_MAP[348] = "minecraft:glowstone_dust";
++       ID_MAP[349] = "minecraft:fish";
++-      ID_MAP[350] = "minecraft:cooked_fished";
+++      ID_MAP[350] = "minecraft:cooked_fish"; // SportBukkit - cooked_fished -> cooked_fish
++       ID_MAP[351] = "minecraft:dye";
++       ID_MAP[352] = "minecraft:bone";
++       ID_MAP[353] = "minecraft:sugar";
++       ID_MAP[354] = "minecraft:cake";
++       ID_MAP[355] = "minecraft:bed";
+-- 
+2.7.4
+

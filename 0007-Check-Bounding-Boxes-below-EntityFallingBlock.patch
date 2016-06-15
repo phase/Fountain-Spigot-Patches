@@ -1,0 +1,75 @@
+From 7017600ace995657c228ac21ad854c263a75c16e Mon Sep 17 00:00:00 2001
+From: Martin Panzer <postremus1996@googlemail.com>
+Date: Tue, 14 Jun 2016 23:29:51 -0700
+Subject: [PATCH 7/8] Check Bounding Boxes below EntityFallingBlock
+
+Instead of only checking if the EntityFallingBlock is on the ground, we
+are checking for collisions beneath it. Fences have a bounding box that
+extends upwards, so we need to check if the entity is colliding with it.
+
+Signed-off-by: Jadon Fowler <jadonflower@gmail.com>
+---
+ .../entity/item/EntityFallingBlock.java.patch      | 48 +++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
+
+diff --git a/patches/net/minecraft/entity/item/EntityFallingBlock.java.patch b/patches/net/minecraft/entity/item/EntityFallingBlock.java.patch
+index 7eeb1e4..ecec9d4 100644
+--- a/patches/net/minecraft/entity/item/EntityFallingBlock.java.patch
++++ b/patches/net/minecraft/entity/item/EntityFallingBlock.java.patch
+@@ -1,6 +1,52 @@
+ --- minecraft/src/net/minecraft/entity/item/EntityFallingBlock.java
+ +++ src/main/java/net/minecraft/entity/item/EntityFallingBlock.java
+-@@ -151,11 +151,11 @@
++@@ -20,10 +20,11 @@
++ import net.minecraft.network.datasync.EntityDataManager;
++ import net.minecraft.tileentity.TileEntity;
++ import net.minecraft.util.DamageSource;
++ import net.minecraft.util.EnumFacing;
++ import net.minecraft.util.ResourceLocation;
+++import net.minecraft.util.math.AxisAlignedBB;
++ import net.minecraft.util.math.BlockPos;
++ import net.minecraft.util.math.MathHelper;
++ import net.minecraft.world.World;
++ 
++ public class EntityFallingBlock extends Entity {
++@@ -70,10 +71,20 @@
++ 
++    public boolean canBeCollidedWith() {
++       return !this.isDead;
++    }
++ 
+++   // Paper Start
+++   public boolean isOnGround() {
+++       BlockPos blockBeneath = new BlockPos(posX, posY - 0.009999999776482582D, posZ);
+++       if(!BlockFalling.canFallThrough(worldObj.getBlockState(blockBeneath))) return true;
+++       if(BlockFalling.canFallThrough(worldObj.getBlockState(blockBeneath.down()))) return false;
+++       ArrayList<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
+++       this.worldObj.getBlockState(blockBeneath.down()).addCollisionBoxToList(worldObj, blockBeneath, getCollisionBoundingBox(), list, this);
+++       return list.size() > 0;
+++   }
+++   // Paper End
++    public void onUpdate() {
++       Block var1 = this.fallTile.getBlock();
++       if(this.fallTile.getMaterial() == Material.AIR) {
++          this.setDead();
++       } else {
++@@ -97,11 +108,11 @@
++          this.motionZ *= 0.9800000190734863D;
++          if(!this.worldObj.isRemote) {
++             BlockPos var9 = new BlockPos(this);
++             if(this.onGround) {
++                IBlockState var3 = this.worldObj.getBlockState(var9);
++-               if(BlockFalling.canFallThrough(this.worldObj.getBlockState(new BlockPos(this.posX, this.posY - 0.009999999776482582D, this.posZ)))) {
+++               if(!isOnGround()) {
++                   this.onGround = false;
++                   return;
++                }
++ 
++                this.motionX *= 0.699999988079071D;
++@@ -151,11 +162,11 @@
+     public void fall(float var1, float var2) {
+        Block var3 = this.fallTile.getBlock();
+        if(this.hurtEntities) {
+-- 
+2.7.4
+

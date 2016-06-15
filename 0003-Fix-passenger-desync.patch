@@ -1,0 +1,38 @@
+From f3cfcfa758e7c5a2dd7aa5742eb3dfc20ace6dc8 Mon Sep 17 00:00:00 2001
+From: Jedediah Smith <jedediah@silencegreys.com>
+Date: Tue, 14 Jun 2016 21:09:01 -0700
+Subject: [PATCH 3/8] Fix passenger desync
+
+Signed-off-by: Jadon Fowler <jadonflower@gmail.com>
+---
+ .../net/minecraft/entity/EntityTrackerEntry.java.patch | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+ create mode 100644 patches/net/minecraft/entity/EntityTrackerEntry.java.patch
+
+diff --git a/patches/net/minecraft/entity/EntityTrackerEntry.java.patch b/patches/net/minecraft/entity/EntityTrackerEntry.java.patch
+new file mode 100644
+index 0000000..632b851
+--- /dev/null
++++ b/patches/net/minecraft/entity/EntityTrackerEntry.java.patch
+@@ -0,0 +1,18 @@
++--- minecraft/src/net/minecraft/entity/EntityTrackerEntry.java
+++++ src/main/java/net/minecraft/entity/EntityTrackerEntry.java
++@@ -362,10 +362,15 @@
++                   for(PotionEffect var14 : var11.getActivePotionEffects()) {
++                      var1.connection.sendPacket(new SPacketEntityEffect(this.trackedEntity.getEntityId(), var14));
++                   }
++                }
++ 
+++               // SportBukkit Start - inform new viewer of our passengers
+++               if(!this.trackedEntity.getPassengers().isEmpty()) {
+++                   var1.connection.sendPacket(new SPacketSetPassengers(trackedEntity));
+++               }
+++               // SportBukkit End
++                this.trackedEntity.addTrackingPlayer(var1);
++                var1.addEntity(this.trackedEntity);
++             }
++          } else if(this.trackingPlayers.contains(var1)) {
++             this.trackingPlayers.remove(var1);
+-- 
+2.7.4
+

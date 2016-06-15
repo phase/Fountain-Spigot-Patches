@@ -1,0 +1,37 @@
+From 5dc391c8bb08978fdf3e36c1486f74140aba46d9 Mon Sep 17 00:00:00 2001
+From: md_5 <md_5@live.com.au>
+Date: Tue, 14 Jun 2016 20:32:23 -0700
+Subject: [PATCH 1/8] Disallow Interaction With Self
+
+Signed-off-by: Jadon Fowler <jadonflower@gmail.com>
+---
+ .../minecraft/network/NetHandlerPlayServer.java.patch   | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 patches/net/minecraft/network/NetHandlerPlayServer.java.patch
+
+diff --git a/patches/net/minecraft/network/NetHandlerPlayServer.java.patch b/patches/net/minecraft/network/NetHandlerPlayServer.java.patch
+new file mode 100644
+index 0000000..13f0599
+--- /dev/null
++++ b/patches/net/minecraft/network/NetHandlerPlayServer.java.patch
+@@ -0,0 +1,17 @@
++--- minecraft/src/net/minecraft/network/NetHandlerPlayServer.java
+++++ src/main/java/net/minecraft/network/NetHandlerPlayServer.java
++@@ -801,12 +801,14 @@
++ 
++    }
++ 
++    public void processUseEntity(CPacketUseEntity var1) {
++       PacketThreadUtil.checkThreadAndEnqueue(var1, this, this.playerEntity.getServerWorld());
+++      if (this.playerEntity.isDead) return; // CraftBukkit
++       WorldServer var2 = this.serverController.worldServerForDimension(this.playerEntity.dimension);
++       Entity var3 = var1.getEntityFromWorld(var2);
+++      if (var3 == this.playerEntity && !this.playerEntity.isSpectator()) return; // Spigot
++       this.playerEntity.markPlayerActive();
++       if(var3 != null) {
++          boolean var4 = this.playerEntity.canEntityBeSeen(var3);
++          double var5 = 36.0D;
++          if(!var4) {
+-- 
+2.7.4
+
